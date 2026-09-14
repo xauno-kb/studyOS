@@ -29,6 +29,14 @@ DROP POLICY IF EXISTS "Авторизованные могут добавлят�
 CREATE POLICY "Авторизованные могут добавлять материалы" 
 ON public.subject_materials FOR INSERT TO authenticated WITH CHECK (auth.uid() = uploaded_by);
 
+DROP POLICY IF EXISTS "Автор или админ могут изменять материал" ON public.subject_materials;
+CREATE POLICY "Автор или админ могут изменять материал" 
+ON public.subject_materials FOR UPDATE TO authenticated 
+USING (
+    auth.uid() = uploaded_by 
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+);
+
 DROP POLICY IF EXISTS "Автор или админ могут удалять материал" ON public.subject_materials;
 CREATE POLICY "Автор или админ могут удалять материал" 
 ON public.subject_materials FOR DELETE TO authenticated 
@@ -55,6 +63,14 @@ ON public.subject_notes FOR SELECT TO authenticated USING (true);
 DROP POLICY IF EXISTS "Авторизованные могут оставлять заметки" ON public.subject_notes;
 CREATE POLICY "Авторизованные могут оставлять заметки" 
 ON public.subject_notes FOR INSERT TO authenticated WITH CHECK (auth.uid() = author_id);
+
+DROP POLICY IF EXISTS "Автор или админ могут изменять заметку" ON public.subject_notes;
+CREATE POLICY "Автор или админ могут изменять заметку" 
+ON public.subject_notes FOR UPDATE TO authenticated 
+USING (
+    auth.uid() = author_id 
+    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+);
 
 DROP POLICY IF EXISTS "Автор или админ могут удалять заметку" ON public.subject_notes;
 CREATE POLICY "Автор или админ могут удалять заметку" 

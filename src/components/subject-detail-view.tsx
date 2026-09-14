@@ -41,6 +41,8 @@ import {
   Loader2,
   FileDown,
   Paperclip,
+  Save,
+  X,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -83,6 +85,22 @@ export function SubjectDetailView({
   const [syllabusModalOpen, setSyllabusModalOpen] = React.useState(false);
   const [syllabusFile, setSyllabusFile] = React.useState<File | null>(null);
   const [uploadingSyllabus, setUploadingSyllabus] = React.useState(false);
+
+  // Editable Description
+  const [description, setDescription] = React.useState(subject.description || "");
+  const [isEditingDesc, setIsEditingDesc] = React.useState(false);
+  const [savingDesc, setSavingDesc] = React.useState(false);
+
+  // Material Edit Modal
+  const [editingMaterial, setEditingMaterial] = React.useState<SubjectMaterial | null>(null);
+  const [editMatTitle, setEditMatTitle] = React.useState("");
+  const [editMatFile, setEditMatFile] = React.useState<File | null>(null);
+  const [updatingMaterial, setUpdatingMaterial] = React.useState(false);
+
+  // Note Edit State
+  const [editingNoteId, setEditingNoteId] = React.useState<string | null>(null);
+  const [editingNoteText, setEditingNoteText] = React.useState("");
+  const [updatingNote, setUpdatingNote] = React.useState(false);
 
   // New Note
   const [noteContent, setNoteContent] = React.useState("");
@@ -239,6 +257,127 @@ export function SubjectDetailView({
     router.refresh();
   };
 
+  // Handle save inline description
+  const handleSaveDescription = async () => {
+    setSavingDesc(true);
+    try {
+      const supabase = createClient();
+      const cleanDesc = description.trim() || null;
+      const { error } = await supabase
+        .from("subjects")
+        .update({ description: cleanDesc })
+        .eq("id", subject.id);
+
+      if (error) throw error;
+      setIsEditingDesc(false);
+      router.refresh();
+    } catch (err: any) {
+      alert(`Ошибка сохранения описания: ${err.message}`);
+    } finally {
+      setSavingDesc(false);
+    }
+  };
+
+  // Handle delete syllabus (методичка курса)
+  const handleDeleteSyllabus = async () => {
+    if (!confirm("Удалить методичку этого предмета?")) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("subjects")
+        .update({
+          syllabus_file_url: null,
+          syllabus_filename: null,
+        })
+        .eq("id", subject.id);
+
+      if (error) throw error;
+      router.refresh();
+    } catch (err: any) {
+      alert(`Ошибка удаления методички: ${err.message}`);
+    }
+  };
+
+  // Handle update extra material
+  const handleUpdateMaterial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMaterial || !editMatTitle.trim()) return;
+    setUpdatingMaterial(true);
+
+    try {
+      const supabase = createClient();
+      let fileUrl = editingMaterial.file_url;
+      let filename = editingMaterial.filename;
+
+      if (editMatFile) {
+        const ext = editMatFile.name.split(".").pop();
+        const path = `extra/${subject.id}/${Date.now()}_${Math.random().toString(36).substring(2, 6)}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("materials")
+          .upload(path, editMatFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage.from("materials").getPublicUrl(path);
+        fileUrl = urlData.publicUrl;
+        filename = editMatFile.name;
+      }
+
+      const { data: updated, error } = await supabase
+        .from("subject_materials")
+        .update({
+          title: editMatTitle.trim(),
+          file_url: fileUrl,
+          filename: filename,
+        })
+        .eq("id", editingMaterial.id)
+        .select("*, uploader:profiles(*)")
+        .single();
+
+      if (error) throw error;
+
+      if (updated) {
+        setMaterials(materials.map((m) => (m.id === editingMaterial.id ? (updated as SubjectMaterial) : m)));
+      }
+      setEditingMaterial(null);
+      setEditMatFile(null);
+    } catch (err: any) {
+      alert(`Ошибка обновления материала: ${err.message}`);
+    } finally {
+      setUpdatingMaterial(false);
+    }
+  };
+
+  // Handle update note
+  const handleUpdateNote = async (noteId: string) => {
+    if (!editingNoteText.trim()) return;
+    setUpdatingNote(true);
+
+    try {
+      const supabase = createClient();
+      const { data: updated, error } = await supabase
+        .from("subject_notes")
+        .update({
+          content: editingNoteText.trim(),
+        })
+        .eq("id", noteId)
+        .select("*, author:profiles(*)")
+        .single();
+
+      if (error) throw error;
+
+      if (updated) {
+        setNotes(notes.map((n) => (n.id === noteId ? (updated as SubjectNote) : n)));
+      }
+      setEditingNoteId(null);
+    } catch (err: any) {
+      alert(`Ошибка обновления заметки: ${err.message}`);
+    } finally {
+      setUpdatingNote(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Breadcrumb Back Link */}
@@ -322,10 +461,87 @@ export function SubjectDetailView({
             </div>
           </div>
 
-          {subject.description && (
-            <div className="p-4 rounded-xl bg-card/60 border border-border/60 text-sm leading-relaxed whitespace-pre-wrap mt-3">
-              {subject.description}
+          {/* Editable Description Section */}
+          {isEditingDesc ? (
+            <div className="mt-3 p-4 rounded-xl bg-card border border-primary/40 shadow-sm space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold flex items-center gap-1.5 text-foreground">
+                  <Edit2 className="h-3.5 w-3.5 text-primary" />
+                  Описание предмета
+                </span>
+                <span className="text-muted-foreground text-[11px]">
+                  Требования, критерии, ссылки
+                </span>
+              </div>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                placeholder="Укажите описание предмета, критерии оценки или важные примечания для группы..."
+                className="w-full rounded-lg border border-input bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary leading-relaxed"
+                autoFocus
+              />
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={savingDesc}
+                  onClick={() => {
+                    setDescription(subject.description || "");
+                    setIsEditingDesc(false);
+                  }}
+                  className="text-xs h-8"
+                >
+                  Отмена
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={savingDesc}
+                  onClick={handleSaveDescription}
+                  className="text-xs h-8 gap-1.5"
+                >
+                  {savingDesc ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
+                  Сохранить
+                </Button>
+              </div>
             </div>
+          ) : description ? (
+            <div className="group relative mt-3 p-4 rounded-xl bg-card/60 border border-border/60 text-sm leading-relaxed whitespace-pre-wrap">
+              <div className="flex items-start justify-between gap-3">
+                <div className="text-foreground/90 flex-1">{description}</div>
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditingDesc(true)}
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0 gap-1 opacity-70 group-hover:opacity-100 transition-opacity"
+                    title="Редактировать описание предмета"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                    <span>Изменить</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            isAdmin && (
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingDesc(true)}
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary p-2 rounded-lg border border-dashed border-border hover:border-primary/50 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Добавить описание предмета
+                </button>
+              </div>
+            )
           )}
 
           {/* Progress Bar */}
@@ -382,15 +598,28 @@ export function SubjectDetailView({
             )}
 
             {isAdmin && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSyllabusModalOpen(true)}
-                className="text-xs gap-1.5"
-              >
-                <Upload className="h-3.5 w-3.5" />
-                {subject.syllabus_file_url ? "Заменить" : "Загрузить методичку"}
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSyllabusModalOpen(true)}
+                  className="text-xs gap-1.5"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  {subject.syllabus_file_url ? "Заменить" : "Загрузить методичку"}
+                </Button>
+                {subject.syllabus_file_url && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDeleteSyllabus}
+                    className="text-xs text-muted-foreground hover:text-destructive h-8 px-2"
+                    title="Удалить методичку предмета"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </CardContent>
@@ -467,14 +696,29 @@ export function SubjectDetailView({
                     <LabStatusBadge status={mySub?.status || "not_started"} />
 
                     {isAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleDeleteAssignment(assignment.id, assignment.title)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          title="Редактировать лабораторную"
+                          onClick={() => {
+                            setEditingAssignment(assignment);
+                            setAssignmentModalOpen(true);
+                          }}
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          title="Удалить лабораторную"
+                          onClick={() => handleDeleteAssignment(assignment.id, assignment.title)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     )}
 
                     <Link
@@ -550,13 +794,26 @@ export function SubjectDetailView({
                     </a>
 
                     {(mat.uploaded_by === profile.id || isAdmin) && (
-                      <button
-                        onClick={() => handleDeleteMaterial(mat.id)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-                        title="Удалить файл"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingMaterial(mat);
+                            setEditMatTitle(mat.title);
+                            setEditMatFile(null);
+                          }}
+                          className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
+                          title="Редактировать материал"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMaterial(mat.id)}
+                          className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Удалить файл"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -604,19 +861,66 @@ export function SubjectDetailView({
                       <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                         <span>{formatDate(n.created_at)}</span>
                         {(n.author_id === profile.id || isAdmin) && (
-                          <button
-                            onClick={() => handleDeleteNote(n.id)}
-                            className="hover:text-destructive transition-colors"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingNoteId(n.id);
+                                setEditingNoteText(n.content);
+                              }}
+                              className="hover:text-primary transition-colors p-0.5"
+                              title="Редактировать заметку"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteNote(n.id)}
+                              className="hover:text-destructive transition-colors p-0.5"
+                              title="Удалить заметку"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
 
-                    <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                      {n.content}
-                    </p>
+                    {editingNoteId === n.id ? (
+                      <div className="space-y-2 mt-1">
+                        <textarea
+                          value={editingNoteText}
+                          onChange={(e) => setEditingNoteText(e.target.value)}
+                          rows={2}
+                          className="w-full rounded-lg border border-primary/40 bg-background p-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary leading-relaxed"
+                          autoFocus
+                        />
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 text-[11px] px-2"
+                            disabled={updatingNote}
+                            onClick={() => setEditingNoteId(null)}
+                          >
+                            Отмена
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-6 text-[11px] px-2.5 gap-1"
+                            disabled={updatingNote || !editingNoteText.trim()}
+                            onClick={() => handleUpdateNote(n.id)}
+                          >
+                            {updatingNote ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                            Сохранить
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                        {n.content}
+                      </p>
+                    )}
                   </div>
                 ))
               )}
@@ -729,6 +1033,104 @@ export function SubjectDetailView({
             </Button>
             <Button type="submit" disabled={uploadingMaterial || !materialFile || !materialTitle.trim()}>
               {uploadingMaterial ? <Loader2 className="h-4 w-4 animate-spin" /> : "Загрузить"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </Dialog>
+
+      {/* Edit Extra Material Modal */}
+      <Dialog
+        open={!!editingMaterial}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingMaterial(null);
+            setEditMatFile(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Редактировать полезный материал</DialogTitle>
+          <DialogDescription>
+            Измените название материала или загрузите новый файл на замену
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleUpdateMaterial} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium">Название материала *</label>
+            <Input
+              value={editMatTitle}
+              onChange={(e) => setEditMatTitle(e.target.value)}
+              placeholder="Например: Вопросы к экзамену 2026"
+              required
+              className="text-xs"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium">Текущий файл</label>
+            <div className="p-2.5 rounded-lg border border-border/70 bg-secondary/30 text-xs flex items-center justify-between">
+              <span className="truncate font-medium">{editingMaterial?.filename}</span>
+              <span className="text-[10px] text-muted-foreground">Прикреплен</span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium">Заменить файл (необязательно)</label>
+            <div className="border border-dashed border-border rounded-xl p-4 text-center">
+              <input
+                type="file"
+                id="edit-extra-file-upload"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) setEditMatFile(e.target.files[0]);
+                }}
+              />
+              {editMatFile ? (
+                <div className="flex items-center justify-center gap-2 text-xs">
+                  <Upload className="h-4 w-4 text-primary shrink-0" />
+                  <span className="font-semibold text-foreground truncate max-w-[280px]">
+                    {editMatFile.name} ({(editMatFile.size / 1024 / 1024).toFixed(2)} МБ)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setEditMatFile(null);
+                    }}
+                    className="p-1 text-muted-foreground hover:text-destructive rounded"
+                    title="Отменить выбор файла"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <label
+                  htmlFor="edit-extra-file-upload"
+                  className="cursor-pointer flex flex-col items-center gap-2 text-xs text-muted-foreground"
+                >
+                  <Upload className="h-5 w-5 text-primary" />
+                  <span>Нажмите для выбора нового файла на замену</span>
+                </label>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setEditingMaterial(null);
+                setEditMatFile(null);
+              }}
+            >
+              Отмена
+            </Button>
+            <Button
+              type="submit"
+              disabled={updatingMaterial || !editMatTitle.trim()}
+            >
+              {updatingMaterial ? <Loader2 className="h-4 w-4 animate-spin" /> : "Сохранить"}
             </Button>
           </DialogFooter>
         </form>

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LabStatusBadge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
+import { AssignmentModal } from "@/components/assignment-modal";
 import {
   FileText,
   Download,
@@ -30,6 +31,9 @@ import {
   MessageSquare,
   Sparkles,
   BookOpen,
+  Edit2,
+  Trash2,
+  X,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -55,6 +59,9 @@ export function AssignmentDetailView({
   groupSubmissions,
 }: AssignmentDetailViewProps) {
   const router = useRouter();
+  const isAdmin = profile.role === "admin";
+  const [assignmentModalOpen, setAssignmentModalOpen] = React.useState(false);
+
   const [status, setStatus] = React.useState<LabStatus>(
     mySubmission?.status || "not_started"
   );
@@ -73,6 +80,20 @@ export function AssignmentDetailView({
   const [saving, setSaving] = React.useState(false);
   const [saveSuccess, setSaveSuccess] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  const handleDeleteAssignment = async () => {
+    if (!confirm(`Вы действительно хотите удалить лабораторную работу «${assignment.title}»?`)) {
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase.from("assignments").delete().eq("id", assignment.id);
+    if (error) {
+      alert(`Ошибка при удалении: ${error.message}`);
+      return;
+    }
+    router.push(assignment.subject_id ? `/dashboard/subjects/${assignment.subject_id}` : "/dashboard/subjects");
+    router.refresh();
+  };
 
   // Countdown timer calculation
   const [timeLeft, setTimeLeft] = React.useState<string>("");
@@ -178,14 +199,37 @@ export function AssignmentDetailView({
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Back button and Breadcrumb */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
         <Link
-          href="/dashboard/subjects"
+          href={assignment.subject_id ? `/dashboard/subjects/${assignment.subject_id}` : "/dashboard/subjects"}
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Назад к предметам
+          {assignment.subject ? `К предмету: ${assignment.subject.title}` : "Все предметы"}
         </Link>
+
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAssignmentModalOpen(true)}
+              className="text-xs gap-1.5"
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              Редактировать лабу
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDeleteAssignment}
+              className="text-xs text-muted-foreground hover:text-destructive gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Удалить
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Main Task Card */}
@@ -386,19 +430,33 @@ export function AssignmentDetailView({
                   <div className="flex items-center justify-between p-2.5 rounded-lg border border-border/70 bg-secondary/30 text-xs mb-2">
                     <div className="flex items-center gap-2 truncate">
                       <FileText className="h-4 w-4 text-emerald-400 shrink-0" />
-                      <span className="truncate">{currentFileName}</span>
+                      <span className="truncate font-medium">{currentFileName}</span>
                     </div>
-                    {currentFileUrl && (
-                      <a
-                        href={currentFileUrl}
-                        target="_blank"
-                        download
-                        className="text-xs text-primary hover:underline flex items-center gap-1"
+                    <div className="flex items-center gap-2 shrink-0">
+                      {currentFileUrl && (
+                        <a
+                          href={currentFileUrl}
+                          target="_blank"
+                          download
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Скачать
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCurrentFileUrl(null);
+                          setCurrentFileName(null);
+                        }}
+                        className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-0.5 ml-1"
+                        title="Удалить прикрепленный файл"
                       >
-                        <Download className="h-3.5 w-3.5" />
-                        Скачать
-                      </a>
-                    )}
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Удалить
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -411,19 +469,34 @@ export function AssignmentDetailView({
                       if (e.target.files?.[0]) setFile(e.target.files[0]);
                     }}
                   />
-                  <label
-                    htmlFor="solution-file"
-                    className="cursor-pointer flex items-center justify-center gap-2 text-xs text-muted-foreground"
-                  >
-                    <Upload className="h-4 w-4 text-primary" />
-                    {file ? (
-                      <span className="font-semibold text-foreground truncate max-w-xs">
-                        {file.name}
+                  {file ? (
+                    <div className="flex items-center justify-center gap-2 text-xs">
+                      <FileText className="h-4 w-4 text-primary shrink-0" />
+                      <span className="font-semibold text-foreground truncate max-w-[280px]">
+                        {file.name} ({(file.size / 1024 / 1024).toFixed(2)} МБ)
                       </span>
-                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setFile(null);
+                        }}
+                        className="p-1 text-muted-foreground hover:text-destructive rounded"
+                        title="Отменить выбор файла"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label
+                      htmlFor="solution-file"
+                      className="cursor-pointer flex items-center justify-center gap-2 text-xs text-muted-foreground"
+                    >
+                      <Upload className="h-4 w-4 text-primary" />
                       <span>{currentFileName ? "Перезалить новый файл" : "Прикрепить файл отчета/кода"}</span>
-                    )}
-                  </label>
+                    </label>
+                  )}
                 </div>
               </div>
 
@@ -559,6 +632,16 @@ export function AssignmentDetailView({
           </CardContent>
         </Card>
       </div>
+
+      {/* Assignment Edit Modal */}
+      {isAdmin && (
+        <AssignmentModal
+          open={assignmentModalOpen}
+          onOpenChange={setAssignmentModalOpen}
+          subjectId={assignment.subject_id}
+          assignmentToEdit={assignment}
+        />
+      )}
     </div>
   );
 }

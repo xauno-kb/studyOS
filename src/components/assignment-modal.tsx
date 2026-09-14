@@ -6,7 +6,7 @@ import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } fr
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2, Upload, FileText, X } from "lucide-react";
+import { Loader2, Upload, FileText, X, Trash2 } from "lucide-react";
 import { Assignment } from "@/types/database";
 
 interface AssignmentModalProps {
@@ -238,19 +238,20 @@ export function AssignmentModal({
             <div className="flex items-center justify-between p-2.5 rounded-lg border border-border/70 bg-secondary/30 text-xs mb-2">
               <div className="flex items-center gap-2 truncate">
                 <FileText className="h-4 w-4 text-primary shrink-0" />
-                <span className="truncate">{currentFileName}</span>
+                <span className="truncate font-medium">{currentFileName}</span>
               </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs text-muted-foreground"
+                className="h-7 text-xs text-muted-foreground hover:text-destructive gap-1"
                 onClick={() => {
                   setCurrentFileUrl(null);
                   setCurrentFileName(null);
                 }}
               >
-                Заменить
+                <Trash2 className="h-3.5 w-3.5" />
+                Удалить файл
               </Button>
             </div>
           )}
@@ -266,20 +267,36 @@ export function AssignmentModal({
                 }
               }}
             />
-            <label
-              htmlFor="material-file"
-              className="cursor-pointer flex flex-col items-center gap-1.5 text-xs text-muted-foreground"
-            >
-              <Upload className="h-6 w-6 text-primary mb-1" />
-              {selectedFile ? (
-                <span className="font-semibold text-foreground">{selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} МБ)</span>
-              ) : (
-                <>
-                  <span className="font-semibold text-foreground">Нажмите для загрузки файла</span>
-                  <span>PDF, DOCX, ZIP, архивы до 50 МБ</span>
-                </>
-              )}
-            </label>
+            {selectedFile ? (
+              <div className="flex items-center justify-center gap-2 text-xs">
+                <FileText className="h-5 w-5 text-primary shrink-0" />
+                <span className="font-semibold text-foreground truncate max-w-[280px]">
+                  {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} МБ)
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedFile(null);
+                  }}
+                  className="p-1 text-muted-foreground hover:text-destructive rounded"
+                  title="Отменить выбор файла"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <label
+                htmlFor="material-file"
+                className="cursor-pointer flex flex-col items-center gap-1.5 text-xs text-muted-foreground"
+              >
+                <Upload className="h-6 w-6 text-primary mb-1" />
+                <span className="font-semibold text-foreground">
+                  {currentFileName ? "Выбрать другой файл на замену" : "Нажмите для загрузки файла"}
+                </span>
+                <span>PDF, DOCX, ZIP, архивы до 50 МБ</span>
+              </label>
+            )}
           </div>
         </div>
 
