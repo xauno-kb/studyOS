@@ -68,6 +68,12 @@ export function EventModal({
     setError(null);
 
     try {
+      if (!eventToEdit && (!semesterId || semesterId.trim() === "")) {
+        setError("Семестр не выбран. Пожалуйста, сначала создайте семестр в панели предметов.");
+        setLoading(false);
+        return;
+      }
+
       const supabase = createClient();
       const isoStart = new Date(startTime).toISOString();
       const isoEnd = endTime ? new Date(endTime).toISOString() : null;

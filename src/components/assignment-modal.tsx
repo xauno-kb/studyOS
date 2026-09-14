@@ -81,6 +81,12 @@ export function AssignmentModal({
     setError(null);
 
     try {
+      if (!assignmentToEdit && (!subjectId || subjectId.trim() === "")) {
+        setError("Не удалось определить предмет для добавления лабораторной.");
+        setLoading(false);
+        return;
+      }
+
       const supabase = createClient();
       let fileUrl = currentFileUrl;
       let fileName = currentFileName;

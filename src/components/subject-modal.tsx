@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
-import { Subject } from "@/types/database";
+import { Subject, Semester } from "@/types/database";
 
 interface SubjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   semesterId: string;
+  semesters?: Semester[];
   subjectToEdit?: Subject | null;
 }
 
@@ -31,9 +32,11 @@ export function SubjectModal({
   open,
   onOpenChange,
   semesterId,
+  semesters,
   subjectToEdit,
 }: SubjectModalProps) {
   const router = useRouter();
+  const [currentSemId, setCurrentSemId] = React.useState(semesterId);
   const [title, setTitle] = React.useState("");
   const [teacherName, setTeacherName] = React.useState("");
   const [teacherContact, setTeacherContact] = React.useState("");
@@ -43,6 +46,10 @@ export function SubjectModal({
   const [colorHex, setColorHex] = React.useState(PRESET_COLORS[0]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setCurrentSemId(semesterId || semesters?.[0]?.id || "");
+  }, [semesterId, semesters, open]);
 
   React.useEffect(() => {
     if (subjectToEdit) {
@@ -84,6 +91,13 @@ export function SubjectModal({
             : `https://${chatUrl.trim()}`)
         : null;
 
+      const targetSemId = currentSemId || semesterId;
+      if (!targetSemId || targetSemId.trim() === "") {
+        setError("Учебный семестр не выбран. Пожалуйста, сначала создайте семестр (кнопка «+ Семестр»).");
+        setLoading(false);
+        return;
+      }
+
       if (subjectToEdit) {
         const { error: updateError } = await supabase
           .from("subjects")
@@ -101,7 +115,7 @@ export function SubjectModal({
         if (updateError) throw updateError;
       } else {
         const { error: insertError } = await supabase.from("subjects").insert({
-          semester_id: semesterId,
+          semester_id: targetSemId,
           title: title.trim(),
           teacher_name: teacherName.trim() || null,
           teacher_contact: teacherContact.trim() || null,
@@ -138,6 +152,27 @@ export function SubjectModal({
         {error && (
           <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
             {error}
+          </div>
+        )}
+
+        {semesters && semesters.length > 0 ? (
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Семестр *</label>
+            <select
+              value={currentSemId}
+              onChange={(e) => setCurrentSemId(e.target.value)}
+              className="w-full h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {semesters.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} {s.is_active ? "(текущий)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs">
+            ⚠️ Семестры еще не созданы. Пожалуйста, сначала закройте это окно и нажмите кнопку «+ Семестр».
           </div>
         )}
 

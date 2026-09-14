@@ -57,6 +57,15 @@ export function SubjectsView({
     semesters.find((s) => s.is_active)?.id || semesters[0]?.id || ""
   );
 
+  React.useEffect(() => {
+    if (!selectedSemesterId || !semesters.some((s) => s.id === selectedSemesterId)) {
+      const active = semesters.find((s) => s.is_active) || semesters[0];
+      if (active) {
+        setSelectedSemesterId(active.id);
+      }
+    }
+  }, [semesters, selectedSemesterId]);
+
   // Modals state
   const [semesterModalOpen, setSemesterModalOpen] = React.useState(false);
   const [editingSemester, setEditingSemester] = React.useState<Semester | null>(null);
@@ -176,7 +185,31 @@ export function SubjectsView({
       </div>
 
       {/* Subjects Grid */}
-      {filteredSubjects.length === 0 ? (
+      {semesters.length === 0 ? (
+        <Card className="border-border/60">
+          <CardContent className="py-16 text-center">
+            <Calendar className="h-12 w-12 text-primary mx-auto mb-3" />
+            <h3 className="text-lg font-bold">Сначала создайте учебный семестр</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1 mb-6">
+              {isAdmin
+                ? "Чтобы добавлять предметы и лабораторные работы, создайте первый семестр (например: «3 курс, 1 семестр»)."
+                : "Староста еще не настроил учебный семестр."}
+            </p>
+            {isAdmin && (
+              <Button
+                onClick={() => {
+                  setEditingSemester(null);
+                  setSemesterModalOpen(true);
+                }}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Создать первый семестр
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : filteredSubjects.length === 0 ? (
         <Card className="border-border/60">
           <CardContent className="py-16 text-center">
             <BookOpen className="h-10 w-10 text-muted-foreground/50 mx-auto mb-3" />
@@ -416,6 +449,7 @@ export function SubjectsView({
         open={subjectModalOpen}
         onOpenChange={setSubjectModalOpen}
         semesterId={selectedSemesterId}
+        semesters={semesters}
         subjectToEdit={editingSubject}
       />
 
