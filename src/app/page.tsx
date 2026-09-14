@@ -62,54 +62,55 @@ export default async function LandingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center mb-16">
           {/* Left: Briefing & Primary Directives */}
           <div className="lg:col-span-6 space-y-6 text-left">
-            <div className="inline-flex items-center gap-2 text-xs font-mono text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded">
-              <span>КОНТУР УЧЕБНОЙ ГРУППЫ // v2.4</span>
+            <div className="inline-flex items-center gap-2 text-xs font-mono text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <span>Учебное пространство группы // 3 курс</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-semibold tracking-tight text-foreground leading-[1.15]">
-              Единый рабочий терминал академической группы
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground leading-[1.15]">
+              Учебный хаб и трекер дедлайнов вашей группы
             </h1>
 
             <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-xl">
-              Сквозной трекинг лабораторных работ, синхронизация сдачи для 5 участников, прямой обмен отчетами и автомониторинг дедлайнов. Без потерянных файлов и забытых дедлайнов.
+              Единый портал для пяти сокурсников: все методички, лабораторные работы, обмен решениями в один клик, наглядная матрица прогресса и умный академический календарь.
             </p>
 
             {/* Action Group */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               <Link
                 href="/login"
-                className="px-5 py-2.5 rounded bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors text-center"
+                className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all shadow-sm active:scale-[0.98] text-center"
               >
                 Войти в личный кабинет
               </Link>
               <Link
                 href="/register"
-                className="px-5 py-2.5 rounded border border-border bg-card hover:bg-accent/70 font-medium text-sm transition-colors text-center font-mono"
+                className="px-6 py-3 rounded-lg border border-border bg-card hover:bg-accent font-medium text-sm transition-all active:scale-[0.98] text-center font-mono"
               >
                 Ввести инвайт-код
               </Link>
             </div>
 
             {/* System Status Indicators */}
-            <div className="pt-4 border-t border-border/60 grid grid-cols-3 gap-4 text-left">
+            <div className="pt-5 border-t border-border/60 grid grid-cols-3 gap-4 text-left">
               <div>
-                <div className="font-mono text-lg font-semibold text-foreground">5</div>
-                <div className="text-[11px] text-muted-foreground">Мест в группе</div>
+                <div className="font-mono text-lg font-bold text-foreground">5</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Мест в группе</div>
               </div>
               <div>
-                <div className="font-mono text-lg font-semibold text-emerald-400">100%</div>
-                <div className="text-[11px] text-muted-foreground">Закрытый периметр</div>
+                <div className="font-mono text-lg font-bold text-emerald-400">100%</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Приватность контура</div>
               </div>
               <div>
-                <div className="font-mono text-lg font-semibold text-primary">0</div>
-                <div className="text-[11px] text-muted-foreground">Хаоса с файлами</div>
+                <div className="font-mono text-lg font-bold text-primary">0</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Потерянных отчетов</div>
               </div>
             </div>
           </div>
 
           {/* Right: Live Cohort Telemetry Deck (The Memorable Bold Centerpiece) */}
           <div className="lg:col-span-6 w-full">
-            <div className="rounded border border-border bg-card/90 shadow-2xl overflow-hidden">
+            <div className="rounded-xl border border-border bg-card shadow-lg overflow-hidden">
               {/* Cockpit Titlebar */}
               <div className="px-4 py-2.5 bg-muted/40 border-b border-border/80 flex items-center justify-between font-mono text-xs">
                 <div className="flex items-center gap-2">
@@ -212,7 +213,7 @@ export default async function LandingPage() {
         </div>
 
         {/* Integrated Technical Architecture Pillars (No floating disconnected cards) */}
-        <div className="rounded border border-border bg-card divide-y md:divide-y-0 md:divide-x md:divide-border grid grid-cols-1 md:grid-cols-3">
+        <div className="rounded-xl border border-border bg-card shadow-sm divide-y md:divide-y-0 md:divide-x md:divide-border grid grid-cols-1 md:grid-cols-3">
           <div className="p-6 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs text-primary font-semibold">01 / МАТРИЦА</span>

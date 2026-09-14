@@ -16,10 +16,10 @@ import {
   Clock,
   Calendar as CalendarIcon,
   Plus,
-  ArrowRight,
   ShieldAlert,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -118,46 +118,69 @@ export default async function DashboardPage() {
   const myPending = Object.values(mySubmissionsMap).filter(
     (s) => s.status === "review_pending"
   ).length;
+  const completionPercent = totalAssignments > 0 ? Math.round((myAccepted / totalAssignments) * 100) : 0;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Welcome Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded border border-border bg-card/80">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1">
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
-              {profile?.full_name || "Студент группы"}
-            </h1>
-            {profile?.role === "admin" && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                <ShieldAlert className="h-3 w-3" />
-                Староста
-              </span>
-            )}
+      {/* Welcome Banner with Practical Progress Bar */}
+      <div className="p-5 sm:p-6 rounded-xl border border-border bg-card shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5 mb-1">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                {profile?.full_name || "Студент группы"}
+              </h1>
+              {profile?.role === "admin" && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  <ShieldAlert className="h-3 w-3" />
+                  Староста
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {activeSemester
+                ? `Активный семестр: ${activeSemester.name}`
+                : "Семестр еще не создан. Добавьте его в панели предметов."}
+            </p>
           </div>
-          <p className="text-xs font-mono text-muted-foreground">
-            {activeSemester
-              ? `Семестр: ${activeSemester.name}`
-              : "Семестр еще не создан. Добавьте его в панели предметов."}
-          </p>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/dashboard/calendar"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-border bg-card hover:bg-accent text-xs font-medium transition-colors"
+            >
+              <CalendarIcon className="h-3.5 w-3.5 text-primary" />
+              Календарь
+            </Link>
+            <Link
+              href="/dashboard/subjects"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium transition-colors shadow-sm"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              Все предметы
+            </Link>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/dashboard/calendar"
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded border border-border bg-card hover:bg-accent/60 text-xs font-medium transition-colors font-mono"
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
-            Календарь
-          </Link>
-          <Link
-            href="/dashboard/subjects"
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium transition-colors"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            Все предметы
-          </Link>
-        </div>
+        {totalAssignments > 0 && (
+          <div className="pt-3 border-t border-border/60">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground">Академический прогресс:</span>
+                <span className="text-muted-foreground font-mono">
+                  {myAccepted} из {totalAssignments} лаб зачтено
+                </span>
+              </div>
+              <div className="flex items-center gap-3 font-mono text-xs">
+                {myPending > 0 && (
+                  <span className="text-sky-400 font-medium">На проверке: {myPending}</span>
+                )}
+                <span className="font-bold text-primary text-sm">{completionPercent}%</span>
+              </div>
+            </div>
+            <Progress value={completionPercent} max={100} indicatorColor="bg-primary" className="h-2.5" />
+          </div>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -244,10 +267,9 @@ export default async function DashboardPage() {
                 </CardTitle>
                 <Link
                   href="/dashboard/calendar"
-                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                  className="text-xs text-primary hover:underline font-medium"
                 >
-                  Все
-                  <ArrowRight className="h-3 w-3" />
+                  Перейти в календарь
                 </Link>
               </div>
             </CardHeader>

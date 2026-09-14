@@ -34,7 +34,6 @@ import {
   ArrowRight,
   Trash2,
   Edit2,
-  Sparkles,
   User,
   Calendar,
   Send,

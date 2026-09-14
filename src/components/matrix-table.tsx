@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Profile, Subject, Assignment, Submission } from "@/types/database";
 import { LabStatusBadge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, BookOpen, ExternalLink, Sparkles } from "lucide-react";
+import { Users, BookOpen, ExternalLink, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MatrixTableProps {
@@ -130,7 +130,7 @@ export function MatrixTable({
                             </div>
                             {student.role === "admin" && (
                               <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-0.5">
-                                <Sparkles className="h-2.5 w-2.5" />
+                                <ShieldCheck className="h-3 w-3" />
                                 Староста
                               </span>
                             )}
@@ -159,6 +159,33 @@ export function MatrixTable({
           </div>
         )}
       </CardContent>
+
+      {/* Practical Status Legend */}
+      <div className="px-5 py-3 border-t border-border/60 bg-muted/20 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground text-[11px]">Обозначения статусов:</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span>Зачтено</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-blue-400" />
+            <span>На проверке</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            <span>В процессе</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-red-400" />
+            <span>Доработка</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
+            <span>Не начато</span>
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }
