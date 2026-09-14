@@ -29,6 +29,7 @@ import {
   Loader2,
   MessageSquare,
   Sparkles,
+  BookOpen,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -264,38 +265,53 @@ export function AssignmentDetailView({
             </div>
           )}
 
-          {/* Material File Download */}
-          {assignment.material_file_url ? (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                  <FileText className="h-5 w-5" />
+          {/* Files and Material Downloads */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="font-semibold text-sm">
+                  {assignment.material_filename || "Файл задания к работе"}
                 </div>
-                <div>
-                  <div className="font-semibold text-sm">
-                    {assignment.material_filename || "Методические указания"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Оригинальный файл задания от преподавателя
-                  </div>
+                <div className="text-xs text-muted-foreground">
+                  {assignment.material_file_url
+                    ? "Прикрепленный файл задания для выполнения"
+                    : "Файл задания не прикреплен"}
                 </div>
               </div>
+            </div>
 
-              <a
-                href={assignment.material_file_url}
-                target="_blank"
-                download
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold shadow-sm transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                Скачать методичку
-              </a>
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
+              {/* Button 1: Download Subject Syllabus (Методичка предмета) */}
+              {assignment.subject?.syllabus_file_url && (
+                <a
+                  href={assignment.subject.syllabus_file_url}
+                  target="_blank"
+                  download
+                  className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg border border-border bg-card hover:bg-accent text-xs font-semibold shadow-sm transition-colors"
+                  title="Скачать общую методичку курса"
+                >
+                  <BookOpen className="h-3.5 w-3.5 text-primary" />
+                  Скачать методичку предмета
+                </a>
+              )}
+
+              {/* Button 2: Download Assignment Task File (Скачать файл) */}
+              {assignment.material_file_url && (
+                <a
+                  href={assignment.material_file_url}
+                  target="_blank"
+                  download
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold shadow-sm transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                  Скачать файл
+                </a>
+              )}
             </div>
-          ) : (
-            <div className="text-xs text-muted-foreground italic">
-              Методический файл к данной работе не прикреплен.
-            </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 

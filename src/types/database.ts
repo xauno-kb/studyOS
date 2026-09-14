@@ -51,7 +51,29 @@ export interface Subject {
   chat_url?: string | null;
   description?: string | null;
   color_hex?: string | null;
+  syllabus_file_url?: string | null;
+  syllabus_filename?: string | null;
   created_at: string;
+}
+
+export interface SubjectMaterial {
+  id: string;
+  subject_id: string;
+  title: string;
+  file_url: string;
+  filename: string;
+  uploaded_by?: string | null;
+  created_at: string;
+  uploader?: Profile;
+}
+
+export interface SubjectNote {
+  id: string;
+  subject_id: string;
+  content: string;
+  author_id: string;
+  created_at: string;
+  author?: Profile;
 }
 
 export interface Assignment {

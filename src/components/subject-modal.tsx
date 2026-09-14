@@ -44,6 +44,9 @@ export function SubjectModal({
   const [chatUrl, setChatUrl] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [colorHex, setColorHex] = React.useState(PRESET_COLORS[0]);
+  const [syllabusFile, setSyllabusFile] = React.useState<File | null>(null);
+  const [currentSyllabusUrl, setCurrentSyllabusUrl] = React.useState<string | null>(null);
+  const [currentSyllabusName, setCurrentSyllabusName] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -60,6 +63,8 @@ export function SubjectModal({
       setChatUrl(subjectToEdit.chat_url || "");
       setDescription(subjectToEdit.description || "");
       setColorHex(subjectToEdit.color_hex || PRESET_COLORS[0]);
+      setCurrentSyllabusUrl(subjectToEdit.syllabus_file_url || null);
+      setCurrentSyllabusName(subjectToEdit.syllabus_filename || null);
     } else {
       setTitle("");
       setTeacherName("");
@@ -68,7 +73,10 @@ export function SubjectModal({
       setChatUrl("");
       setDescription("");
       setColorHex(PRESET_COLORS[0]);
+      setCurrentSyllabusUrl(null);
+      setCurrentSyllabusName(null);
     }
+    setSyllabusFile(null);
   }, [subjectToEdit, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,6 +106,25 @@ export function SubjectModal({
         return;
       }
 
+      let syllabusUrl = currentSyllabusUrl;
+      let syllabusName = currentSyllabusName;
+
+      if (syllabusFile) {
+        const ext = syllabusFile.name.split(".").pop();
+        const safeName = `syllabus_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.${ext}`;
+        const path = `syllabi/${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("materials")
+          .upload(path, syllabusFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage.from("materials").getPublicUrl(path);
+        syllabusUrl = urlData.publicUrl;
+        syllabusName = syllabusFile.name;
+      }
+
       if (subjectToEdit) {
         const { error: updateError } = await supabase
           .from("subjects")
@@ -109,6 +136,8 @@ export function SubjectModal({
             chat_url: cleanChat,
             description: description.trim() || null,
             color_hex: colorHex,
+            syllabus_file_url: syllabusUrl,
+            syllabus_filename: syllabusName,
           })
           .eq("id", subjectToEdit.id);
 
@@ -123,6 +152,8 @@ export function SubjectModal({
           chat_url: cleanChat,
           description: description.trim() || null,
           color_hex: colorHex,
+          syllabus_file_url: syllabusUrl,
+          syllabus_filename: syllabusName,
         });
 
         if (insertError) throw insertError;
@@ -252,6 +283,35 @@ export function SubjectModal({
             rows={2}
             placeholder="Требования к зачету, критерии оценивания или ссылка на диск..."
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+
+        {/* Course Syllabus Upload */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">
+            Общая методичка предмета <span className="text-xs text-muted-foreground font-normal">(опционально)</span>
+          </label>
+          {currentSyllabusName && !syllabusFile && (
+            <div className="p-2 rounded-lg bg-secondary/50 border border-border text-xs flex items-center justify-between">
+              <span className="truncate">Прикреплен файл: {currentSyllabusName}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentSyllabusUrl(null);
+                  setCurrentSyllabusName(null);
+                }}
+                className="text-xs text-destructive hover:underline ml-2"
+              >
+                Удалить
+              </button>
+            </div>
+          )}
+          <Input
+            type="file"
+            onChange={(e) => {
+              if (e.target.files?.[0]) setSyllabusFile(e.target.files[0]);
+            }}
+            className="text-xs"
           />
         </div>
 
