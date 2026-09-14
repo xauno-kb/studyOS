@@ -55,13 +55,13 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center text-center mb-6">
-          <Link href="/" className="inline-flex items-center gap-2.5 font-bold text-2xl tracking-tight mb-2">
-            <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20">
-              <GraduationCap className="h-6 w-6" />
+          <Link href="/" className="inline-flex items-center gap-2.5 font-semibold text-xl tracking-tight mb-2">
+            <div className="p-2 rounded bg-primary/10 text-primary border border-primary/25">
+              <GraduationCap className="h-5 w-5" />
             </div>
-            <span>Study<span className="text-primary">OS</span></span>
+            <span>StudyOS</span>
           </Link>
-          <p className="text-sm text-muted-foreground">Вход в персональный академический хаб группы</p>
+          <p className="text-xs font-mono text-muted-foreground">Закрытый терминал учебной группы</p>
         </div>
 
         <Card className="border-border/70 shadow-xl">

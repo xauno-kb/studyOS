@@ -17,7 +17,7 @@ import {
   Calendar as CalendarIcon,
   Plus,
   ArrowRight,
-  Sparkles,
+  ShieldAlert,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
@@ -122,102 +122,102 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Welcome Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 rounded-2xl border border-border/70 bg-gradient-to-r from-card via-card/80 to-primary/5 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded border border-border bg-card/80">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Привет, {profile?.full_name || "Студент"}! 👋
+          <div className="flex items-center gap-2.5 mb-1">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+              {profile?.full_name || "Студент группы"}
             </h1>
             {profile?.role === "admin" && (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                <Sparkles className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                <ShieldAlert className="h-3 w-3" />
                 Староста
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs font-mono text-muted-foreground">
             {activeSemester
-              ? `Активный семестр: ${activeSemester.name}`
+              ? `Семестр: ${activeSemester.name}`
               : "Семестр еще не создан. Добавьте его в панели предметов."}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/dashboard/calendar"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-card hover:bg-accent text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded border border-border bg-card hover:bg-accent/60 text-xs font-medium transition-colors font-mono"
           >
-            <CalendarIcon className="h-4 w-4" />
+            <CalendarIcon className="h-3.5 w-3.5" />
             Календарь
           </Link>
           <Link
             href="/dashboard/subjects"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium transition-colors"
           >
-            <BookOpen className="h-4 w-4" />
+            <BookOpen className="h-3.5 w-3.5" />
             Все предметы
           </Link>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-border/60">
-          <CardContent className="p-5 flex items-center justify-between">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <Card className="border-border/70 rounded">
+          <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Предметов
+              <p className="text-[11px] font-mono text-muted-foreground">
+                Предметов в плане
               </p>
-              <h3 className="text-2xl font-bold mt-1">{subjects.length}</h3>
+              <h3 className="text-2xl font-mono font-semibold mt-1 text-foreground">{subjects.length}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              <BookOpen className="h-5 w-5" />
+            <div className="p-2 rounded bg-muted text-muted-foreground">
+              <BookOpen className="h-4 w-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
-          <CardContent className="p-5 flex items-center justify-between">
+        <Card className="border-border/70 rounded">
+          <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Всего лаб
+              <p className="text-[11px] font-mono text-muted-foreground">
+                Лабораторных работ
               </p>
-              <h3 className="text-2xl font-bold mt-1">{totalAssignments}</h3>
+              <h3 className="text-2xl font-mono font-semibold mt-1 text-foreground">{totalAssignments}</h3>
             </div>
-            <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
-              <Clock className="h-5 w-5" />
+            <div className="p-2 rounded bg-muted text-muted-foreground">
+              <Clock className="h-4 w-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
-          <CardContent className="p-5 flex items-center justify-between">
+        <Card className="border-border/70 rounded">
+          <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Сдано мной
+              <p className="text-[11px] font-mono text-muted-foreground">
+                Сдано мной (зачет)
               </p>
-              <h3 className="text-2xl font-bold mt-1 text-emerald-400">
+              <h3 className="text-2xl font-mono font-semibold mt-1 text-emerald-400">
                 {myAccepted} <span className="text-xs text-muted-foreground font-normal">/ {totalAssignments}</span>
               </h3>
             </div>
-            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <CheckCircle2 className="h-5 w-5" />
+            <div className="p-2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <CheckCircle2 className="h-4 w-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
-          <CardContent className="p-5 flex items-center justify-between">
+        <Card className="border-border/70 rounded">
+          <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <p className="text-[11px] font-mono text-muted-foreground">
                 На проверке
               </p>
-              <h3 className="text-2xl font-bold mt-1 text-blue-400">
+              <h3 className="text-2xl font-mono font-semibold mt-1 text-sky-400">
                 {myPending}
               </h3>
             </div>
-            <div className="p-3 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <Clock className="h-5 w-5" />
+            <div className="p-2 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              <Clock className="h-4 w-4" />
             </div>
           </CardContent>
         </Card>

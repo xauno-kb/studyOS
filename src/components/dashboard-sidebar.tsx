@@ -67,28 +67,28 @@ export function DashboardSidebar({ profile, activeSemester }: DashboardSidebarPr
   return (
     <aside className="w-64 border-r border-border/70 bg-card/60 flex flex-col h-full shrink-0">
       {/* Brand Header */}
-      <div className="p-5 border-b border-border/60 flex items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-2.5 font-bold text-lg tracking-tight">
-          <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20">
-            <GraduationCap className="h-5 w-5" />
+      <div className="p-4 border-b border-border/70 flex items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-2.5 font-semibold text-base tracking-tight">
+          <div className="h-7 w-7 rounded bg-primary/10 text-primary border border-primary/25 flex items-center justify-center">
+            <GraduationCap className="h-4 w-4" />
           </div>
-          <span>Study<span className="text-primary">OS</span></span>
+          <span>StudyOS</span>
         </Link>
         <ThemeToggle />
       </div>
 
       {/* Active Semester Badge */}
       {activeSemester && (
-        <div className="px-5 py-3 border-b border-border/40 bg-accent/30 flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Семестр:</span>
-          <span className="font-semibold text-primary truncate max-w-[140px]" title={activeSemester.name}>
+        <div className="px-4 py-2.5 border-b border-border/40 bg-accent/20 flex items-center justify-between text-xs font-mono">
+          <span className="text-muted-foreground text-[11px]">Семестр:</span>
+          <span className="font-medium text-primary truncate max-w-[140px] text-xs" title={activeSemester.name}>
             {activeSemester.name}
           </span>
         </div>
       )}
 
       {/* Nav Menu */}
-      <nav className="p-4 space-y-1.5 flex-1">
+      <nav className="p-3 space-y-1 flex-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -96,10 +96,10 @@ export function DashboardSidebar({ profile, activeSemester }: DashboardSidebarPr
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors",
                 item.active
-                  ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  ? "bg-primary text-primary-foreground font-medium"
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -110,23 +110,23 @@ export function DashboardSidebar({ profile, activeSemester }: DashboardSidebarPr
       </nav>
 
       {/* User Profile & Sign Out */}
-      <div className="p-4 border-t border-border/60 bg-card/80">
+      <div className="p-3.5 border-t border-border/70 bg-card/80">
         <div className="flex items-center gap-3 mb-3">
-          <div className="h-9 w-9 rounded-full bg-primary/15 text-primary border border-primary/20 flex items-center justify-center font-bold text-sm shrink-0">
-            {profile?.full_name?.charAt(0) || <User className="h-4 w-4" />}
+          <div className="h-8 w-8 rounded bg-primary/15 text-primary border border-primary/25 flex items-center justify-center font-bold text-xs shrink-0 font-mono">
+            {profile?.full_name?.charAt(0) || <User className="h-3.5 w-3.5" />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold truncate leading-tight">
+            <div className="text-sm font-medium truncate leading-tight">
               {profile?.full_name || "Студент"}
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
               {profile?.role === "admin" ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">
-                  <Sparkles className="h-2.5 w-2.5" />
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-400 border border-amber-500/25">
+                  <ShieldAlert className="h-2.5 w-2.5" />
                   Староста
                 </span>
               ) : (
-                <span className="text-[11px] text-muted-foreground">Студент</span>
+                <span className="text-[11px] font-mono text-muted-foreground">Студент</span>
               )}
             </div>
           </div>
