@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Profile, Semester } from "@/types/database";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { GraduationCap, Menu, X, LayoutDashboard, BookOpen, Calendar, ShieldAlert } from "lucide-react";
+import { GraduationCap, Menu, X, LayoutDashboard, BookOpen, Calendar, ShieldAlert, Gamepad2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +29,9 @@ export function DashboardHeader({
     { label: "Календарь", href: "/dashboard/calendar", icon: Calendar },
     ...(profile?.role === "admin"
       ? [{ label: "Админ-панель", href: "/dashboard/admin", icon: ShieldAlert }]
+      : []),
+    ...(pathname === "/dashboard/game"
+      ? [{ label: "Динозаврик 🦖", href: "/dashboard/game", icon: Gamepad2 }]
       : []),
   ];
 

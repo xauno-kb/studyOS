@@ -130,12 +130,22 @@ export default async function DashboardPage() {
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                 {profile?.full_name || "Студент группы"}
               </h1>
-              {profile?.role === "admin" && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                  <ShieldAlert className="h-3 w-3" />
-                  Староста
-                </span>
-              )}
+              <Link
+                href="/dashboard/game"
+                className="group cursor-pointer"
+                title="Секретная игра: Динозаврик (нажмите для запуска!)"
+              >
+                {profile?.role === "admin" ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 group-hover:bg-amber-500/25 group-hover:scale-105 transition-all">
+                    <ShieldAlert className="h-3 w-3" />
+                    {profile.email?.toLowerCase() === "hasleranet@gmail.com" ? "Главный админ" : "Староста"}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-mono text-muted-foreground px-2 py-0.5 rounded bg-muted/60 border border-border/60 group-hover:text-primary group-hover:border-primary/40 transition-all">
+                    Студент
+                  </span>
+                )}
+              </Link>
             </div>
             <p className="text-xs text-muted-foreground">
               {activeSemester

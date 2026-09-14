@@ -12,7 +12,7 @@ import {
   Calendar,
   ShieldAlert,
   LogOut,
-  Sparkles,
+  Gamepad2,
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,6 +59,16 @@ export function DashboardSidebar({ profile, activeSemester }: DashboardSidebarPr
             href: "/dashboard/admin",
             icon: ShieldAlert,
             active: pathname.startsWith("/dashboard/admin"),
+          },
+        ]
+      : []),
+    ...(pathname === "/dashboard/game"
+      ? [
+          {
+            label: "Динозаврик 🦖",
+            href: "/dashboard/game",
+            icon: Gamepad2,
+            active: true,
           },
         ]
       : []),
@@ -120,14 +130,22 @@ export function DashboardSidebar({ profile, activeSemester }: DashboardSidebarPr
               {profile?.full_name || "Студент"}
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
-              {profile?.role === "admin" ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-400 border border-amber-500/25">
-                  <ShieldAlert className="h-2.5 w-2.5" />
-                  Староста
-                </span>
-              ) : (
-                <span className="text-[11px] font-mono text-muted-foreground">Студент</span>
-              )}
+              <Link
+                href="/dashboard/game"
+                className="group inline-flex items-center gap-1 transition-all cursor-pointer"
+                title="Секретная игра: Динозаврик (нажмите для запуска!)"
+              >
+                {profile?.role === "admin" ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/25 group-hover:bg-amber-500/30 group-hover:scale-105 transition-all">
+                    <ShieldAlert className="h-2.5 w-2.5" />
+                    {profile.email?.toLowerCase() === "hasleranet@gmail.com" ? "Главный админ" : "Староста"}
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-mono text-muted-foreground group-hover:text-primary group-hover:underline px-1 py-0.5 rounded transition-all">
+                    Студент
+                  </span>
+                )}
+              </Link>
             </div>
           </div>
         </div>
