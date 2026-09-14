@@ -134,6 +134,12 @@ export function AssignmentDetailView({
         setCurrentFileName(filename);
       }
 
+      const cleanExternalLink = externalLink.trim()
+        ? (externalLink.trim().startsWith("http://") || externalLink.trim().startsWith("https://")
+            ? externalLink.trim()
+            : `https://${externalLink.trim()}`)
+        : null;
+
       // Upsert submission
       const { error: upsertError } = await supabase
         .from("submissions")
@@ -144,7 +150,7 @@ export function AssignmentDetailView({
             status,
             file_url: fileUrl,
             filename: filename,
-            external_link: externalLink.trim() || null,
+            external_link: cleanExternalLink,
             notes: notes.trim() || null,
             updated_at: new Date().toISOString(),
           },
@@ -409,10 +415,10 @@ export function AssignmentDetailView({
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                   <ExternalLink className="h-3.5 w-3.5" />
-                  Ссылка на репозиторий GitHub или диск
+                  Ссылка на репозиторий GitHub или диск <span className="text-[11px] opacity-70">(опционально)</span>
                 </label>
                 <Input
-                  type="url"
+                  type="text"
                   placeholder="https://github.com/username/project"
                   value={externalLink}
                   onChange={(e) => setExternalLink(e.target.value)}

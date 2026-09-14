@@ -72,16 +72,28 @@ export function SubjectModal({
     try {
       const supabase = createClient();
 
+      const cleanMoodle = moodleUrl.trim()
+        ? (moodleUrl.trim().startsWith("http://") || moodleUrl.trim().startsWith("https://")
+            ? moodleUrl.trim()
+            : `https://${moodleUrl.trim()}`)
+        : null;
+
+      const cleanChat = chatUrl.trim()
+        ? (chatUrl.trim().startsWith("http://") || chatUrl.trim().startsWith("https://")
+            ? chatUrl.trim()
+            : `https://${chatUrl.trim()}`)
+        : null;
+
       if (subjectToEdit) {
         const { error: updateError } = await supabase
           .from("subjects")
           .update({
-            title,
-            teacher_name: teacherName || null,
-            teacher_contact: teacherContact || null,
-            moodle_url: moodleUrl || null,
-            chat_url: chatUrl || null,
-            description: description || null,
+            title: title.trim(),
+            teacher_name: teacherName.trim() || null,
+            teacher_contact: teacherContact.trim() || null,
+            moodle_url: cleanMoodle,
+            chat_url: cleanChat,
+            description: description.trim() || null,
             color_hex: colorHex,
           })
           .eq("id", subjectToEdit.id);
@@ -90,12 +102,12 @@ export function SubjectModal({
       } else {
         const { error: insertError } = await supabase.from("subjects").insert({
           semester_id: semesterId,
-          title,
-          teacher_name: teacherName || null,
-          teacher_contact: teacherContact || null,
-          moodle_url: moodleUrl || null,
-          chat_url: chatUrl || null,
-          description: description || null,
+          title: title.trim(),
+          teacher_name: teacherName.trim() || null,
+          teacher_contact: teacherContact.trim() || null,
+          moodle_url: cleanMoodle,
+          chat_url: cleanChat,
+          description: description.trim() || null,
           color_hex: colorHex,
         });
 
@@ -159,7 +171,7 @@ export function SubjectModal({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Преподаватель</label>
+            <label className="text-sm font-medium">Преподаватель <span className="text-xs text-muted-foreground font-normal">(опционально)</span></label>
             <Input
               value={teacherName}
               onChange={(e) => setTeacherName(e.target.value)}
@@ -167,7 +179,7 @@ export function SubjectModal({
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Контакты препода</label>
+            <label className="text-sm font-medium">Контакты препода <span className="text-xs text-muted-foreground font-normal">(опционально)</span></label>
             <Input
               value={teacherContact}
               onChange={(e) => setTeacherContact(e.target.value)}
@@ -178,27 +190,27 @@ export function SubjectModal({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Ссылка на Moodle</label>
+            <label className="text-sm font-medium">Ссылка на Moodle <span className="text-xs text-muted-foreground font-normal">(опционально)</span></label>
             <Input
-              type="url"
+              type="text"
               value={moodleUrl}
               onChange={(e) => setMoodleUrl(e.target.value)}
               placeholder="https://moodle.university.ru/..."
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Ссылка на беседу / чат</label>
+            <label className="text-sm font-medium">Ссылка на беседу / чат <span className="text-xs text-muted-foreground font-normal">(опционально)</span></label>
             <Input
-              type="url"
+              type="text"
               value={chatUrl}
               onChange={(e) => setChatUrl(e.target.value)}
-              placeholder="https://t.me/joinchat/..."
+              placeholder="https://t.me/... (если есть)"
             />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium">Краткое описание / Заметки</label>
+          <label className="text-sm font-medium">Краткое описание / Заметки <span className="text-xs text-muted-foreground font-normal">(опционально)</span></label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
