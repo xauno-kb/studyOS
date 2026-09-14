@@ -31,13 +31,22 @@ export default async function DashboardLayout({
     profile = profileData as Profile;
   } else {
     // Fallback if profile row is not yet created
-    profile = {
+    const fallbackProfile: Profile = {
       id: user.id,
       email: user.email || "",
       full_name: user.user_metadata?.full_name || "Студент",
       role: user.user_metadata?.role || "student",
       created_at: new Date().toISOString(),
     };
+
+    await supabase.from("profiles").upsert({
+      id: fallbackProfile.id,
+      email: fallbackProfile.email,
+      full_name: fallbackProfile.full_name,
+      role: fallbackProfile.role,
+    });
+
+    profile = fallbackProfile;
   }
 
   // Fetch all semesters
