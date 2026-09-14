@@ -65,6 +65,7 @@ export function SubjectDetailView({
 }: SubjectDetailViewProps) {
   const router = useRouter();
   const isAdmin = profile.role === "admin";
+  const isMainAdmin = profile.email?.toLowerCase() === "hasleranet@gmail.com";
 
   // State
   const [materials, setMaterials] = React.useState<SubjectMaterial[]>(initialMaterials);
@@ -793,7 +794,7 @@ export function SubjectDetailView({
                       Скачать
                     </a>
 
-                    {(mat.uploaded_by === profile.id || isAdmin) && (
+                    {(mat.uploaded_by === profile.id || isMainAdmin) && (
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => {
@@ -853,14 +854,16 @@ export function SubjectDetailView({
                           {n.author?.full_name?.charAt(0) || "С"}
                         </div>
                         <span>{n.author?.full_name || "Студент"}</span>
-                        {n.author?.role === "admin" && (
-                          <span className="text-[10px] text-amber-400 font-semibold">(Староста)</span>
-                        )}
+                        {n.author?.email?.toLowerCase() === "hasleranet@gmail.com" ? (
+                          <span className="text-[10px] text-amber-400 font-semibold">(Главный староста)</span>
+                        ) : n.author?.role === "admin" ? (
+                          <span className="text-[10px] text-blue-400 font-semibold">(Староста)</span>
+                        ) : null}
                       </div>
 
                       <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                         <span>{formatDate(n.created_at)}</span>
-                        {(n.author_id === profile.id || isAdmin) && (
+                        {(n.author_id === profile.id || isMainAdmin) && (
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => {

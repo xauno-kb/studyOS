@@ -29,12 +29,15 @@ interface AdminViewProps {
   invites: Invite[];
 }
 
+const MAIN_ADMIN_EMAIL = "hasleranet@gmail.com";
+
 export function AdminView({
   currentProfile,
   profiles,
   invites,
 }: AdminViewProps) {
   const router = useRouter();
+  const isMainAdmin = currentProfile.email.toLowerCase() === MAIN_ADMIN_EMAIL;
   const [copiedCode, setCopiedCode] = React.useState<string | null>(null);
   const [generating, setGenerating] = React.useState(false);
   const [customCode, setCustomCode] = React.useState("");
@@ -79,10 +82,15 @@ export function AdminView({
     router.refresh();
   };
 
-  // Change user role
-  const handleRoleChange = async (targetUserId: string, newRole: UserRole) => {
-    if (targetUserId === currentProfile.id && newRole !== "admin") {
-      if (!confirm("Вы снимаете права старосты с самого себя! Вы уверены?")) return;
+  // Change user role (только Главный админ)
+  const handleRoleChange = async (targetUserId: string, targetEmail: string, newRole: UserRole) => {
+    if (!isMainAdmin) {
+      alert("Только главный администратор (hasleranet@gmail.com) может изменять роли участников.");
+      return;
+    }
+    if (targetEmail.toLowerCase() === MAIN_ADMIN_EMAIL && newRole !== "admin") {
+      alert("Нельзя снять права с главного администратора системы.");
+      return;
     }
     const supabase = createClient();
     const { error } = await supabase
@@ -243,6 +251,7 @@ export function AdminView({
           <CardContent className="space-y-3">
             {profiles.map((p) => {
               const isMe = p.id === currentProfile.id;
+              const isTargetMainAdmin = p.email.toLowerCase() === MAIN_ADMIN_EMAIL;
               const isTargetAdmin = p.role === "admin";
 
               return (
@@ -263,16 +272,21 @@ export function AdminView({
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground truncate">
+                      <div className="text-xs text-muted-foreground truncate font-mono">
                         {p.email}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    {isTargetAdmin ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                        <Sparkles className="h-3 w-3" />
+                    {isTargetMainAdmin ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm">
+                        <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                        Главный админ
+                      </span>
+                    ) : isTargetAdmin ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                        <ShieldCheck className="h-3 w-3" />
                         Староста
                       </span>
                     ) : (
@@ -281,17 +295,19 @@ export function AdminView({
                       </span>
                     )}
 
-                    {/* Role toggle button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-8"
-                      onClick={() =>
-                        handleRoleChange(p.id, isTargetAdmin ? "student" : "admin")
-                      }
-                    >
-                      {isTargetAdmin ? "Снять права" : "Сделать старостой"}
-                    </Button>
+                    {/* Role toggle button: только Главный админ может менять роли и только для других участников */}
+                    {isMainAdmin && !isTargetMainAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-8"
+                        onClick={() =>
+                          handleRoleChange(p.id, p.email, isTargetAdmin ? "student" : "admin")
+                        }
+                      >
+                        {isTargetAdmin ? "Снять права" : "Сделать старостой"}
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
