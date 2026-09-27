@@ -242,6 +242,10 @@ export function SubjectsView({
               const sub = mySubmissionMap.get(a.id);
               return sub?.status === "accepted";
             }).length;
+            const pendingLabs = subjectAssignments.filter((a) => {
+              const sub = mySubmissionMap.get(a.id);
+              return sub?.status === "review_pending";
+            }).length;
 
             return (
               <Card
@@ -300,14 +304,21 @@ export function SubjectsView({
                   <div className="pt-4 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Сдано работ:</span>
-                      <span className="font-semibold text-foreground">
-                        {completedLabs} из {totalLabs} ({totalLabs > 0 ? Math.round((completedLabs / totalLabs) * 100) : 0}%)
-                      </span>
+                      <div className="flex items-center gap-2 font-mono">
+                        {pendingLabs > 0 && (
+                          <span className="text-sky-500 dark:text-sky-400 font-medium">
+                            {pendingLabs} на проверке
+                          </span>
+                        )}
+                        <span className="font-semibold text-foreground">
+                          {completedLabs} из {totalLabs} ({totalLabs > 0 ? Math.round((completedLabs / totalLabs) * 100) : 0}%)
+                        </span>
+                      </div>
                     </div>
                     <Progress
-                      value={completedLabs}
+                      acceptedValue={completedLabs}
+                      pendingValue={pendingLabs}
                       max={Math.max(1, totalLabs)}
-                      indicatorColor="bg-primary"
                     />
                   </div>
                 </CardHeader>

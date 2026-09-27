@@ -178,17 +178,23 @@ export default async function DashboardPage() {
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-foreground">Академический прогресс:</span>
                 <span className="text-muted-foreground font-mono">
-                  {myAccepted} из {totalAssignments} лаб зачтено
+                  {myAccepted} зачтено{myPending > 0 ? `, ${myPending} на проверке` : ""} из {totalAssignments} лаб
                 </span>
               </div>
               <div className="flex items-center gap-3 font-mono text-xs">
                 {myPending > 0 && (
-                  <span className="text-sky-400 font-medium">На проверке: {myPending}</span>
+                  <span className="text-sky-500 dark:text-sky-400 font-medium flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-sky-400"></span>
+                    На проверке: {myPending}
+                  </span>
                 )}
-                <span className="font-bold text-primary text-sm">{completionPercent}%</span>
+                <span className="font-bold text-primary text-sm flex items-center gap-1.5">
+                  <span className="inline-block w-2 h-2 rounded-full bg-primary"></span>
+                  {completionPercent}%
+                </span>
               </div>
             </div>
-            <Progress value={completionPercent} max={100} indicatorColor="bg-primary" className="h-2.5" />
+            <Progress acceptedValue={myAccepted} pendingValue={myPending} max={totalAssignments} className="h-2.5" />
           </div>
         )}
       </div>

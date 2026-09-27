@@ -117,6 +117,9 @@ export function SubjectDetailView({
   const completedLabs = assignments.filter(
     (a) => mySubmissionMap.get(a.id)?.status === "accepted"
   ).length;
+  const pendingLabs = assignments.filter(
+    (a) => mySubmissionMap.get(a.id)?.status === "review_pending"
+  ).length;
 
   // Handle upload syllabus (методичка курса)
   const handleUploadSyllabus = async (e: React.FormEvent) => {
@@ -548,14 +551,21 @@ export function SubjectDetailView({
           <div className="pt-4">
             <div className="flex items-center justify-between text-xs mb-1.5">
               <span className="text-muted-foreground font-medium">Мой прогресс сдачи лабораторных:</span>
-              <span className="font-bold text-foreground">
-                {completedLabs} из {totalLabs} сдано ({totalLabs > 0 ? Math.round((completedLabs / totalLabs) * 100) : 0}%)
-              </span>
+              <div className="flex items-center gap-2 font-mono">
+                {pendingLabs > 0 && (
+                  <span className="text-sky-500 dark:text-sky-400 font-medium">
+                    {pendingLabs} на проверке
+                  </span>
+                )}
+                <span className="font-bold text-foreground">
+                  {completedLabs} из {totalLabs} сдано ({totalLabs > 0 ? Math.round((completedLabs / totalLabs) * 100) : 0}%)
+                </span>
+              </div>
             </div>
             <Progress
-              value={completedLabs}
+              acceptedValue={completedLabs}
+              pendingValue={pendingLabs}
               max={Math.max(1, totalLabs)}
-              indicatorColor="bg-primary"
             />
           </div>
         </CardHeader>

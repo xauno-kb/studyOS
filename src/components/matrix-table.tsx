@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Profile, Subject, Assignment, Submission } from "@/types/database";
 import { LabStatusBadge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, BookOpen, ExternalLink, ShieldCheck } from "lucide-react";
+import { Users, BookOpen, ExternalLink, ShieldCheck, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MatrixTableProps {
@@ -24,6 +24,7 @@ export function MatrixTable({
   const [selectedSubjectId, setSelectedSubjectId] = React.useState<string>(
     subjects[0]?.id || ""
   );
+  const [filterMode, setFilterMode] = React.useState<"all" | "submitted">("all");
 
   // Update selected subject when subjects change
   React.useEffect(() => {
@@ -45,6 +46,24 @@ export function MatrixTable({
     });
     return map;
   }, [submissions]);
+
+  // Assignments that have at least one submission with status "accepted" or "review_pending"
+  const assignmentsWithSubmissions = React.useMemo(() => {
+    return currentSubjectAssignments.filter((assignment) => {
+      return students.some((student) => {
+        const sub = submissionMap.get(`${assignment.id}_${student.id}`);
+        return sub?.status === "accepted" || sub?.status === "review_pending";
+      });
+    });
+  }, [currentSubjectAssignments, students, submissionMap]);
+
+  // Visible assignments based on filter
+  const visibleAssignments = React.useMemo(() => {
+    if (filterMode === "submitted") {
+      return assignmentsWithSubmissions;
+    }
+    return currentSubjectAssignments;
+  }, [filterMode, assignmentsWithSubmissions, currentSubjectAssignments]);
 
   const selectedSubject = subjects.find((s) => s.id === selectedSubjectId);
 
@@ -84,6 +103,45 @@ export function MatrixTable({
             </div>
           )}
         </div>
+
+        {/* Filter Toggle: All vs Submitted only */}
+        {currentSubjectAssignments.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-1 p-0.5 bg-muted/60 rounded-lg border border-border/70 text-xs">
+              <button
+                type="button"
+                onClick={() => setFilterMode("all")}
+                className={cn(
+                  "px-3 py-1 rounded-md text-xs transition-all",
+                  filterMode === "all"
+                    ? "bg-card text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground font-medium"
+                )}
+              >
+                Все работы ({currentSubjectAssignments.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode("submitted")}
+                className={cn(
+                  "px-3 py-1 rounded-md text-xs transition-all flex items-center gap-1.5",
+                  filterMode === "submitted"
+                    ? "bg-card text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground font-medium"
+                )}
+              >
+                <Filter className="h-3 w-3 text-primary" />
+                <span>Только со сдачами ({assignmentsWithSubmissions.length})</span>
+              </button>
+            </div>
+
+            {filterMode === "submitted" && (
+              <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                Скрыты работы ({currentSubjectAssignments.length - assignmentsWithSubmissions.length}) без сдач
+              </span>
+            )}
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="p-0">
@@ -95,13 +153,26 @@ export function MatrixTable({
           <div className="text-center py-10 text-sm text-muted-foreground p-6">
             По предмету <span className="font-semibold text-foreground">«{selectedSubject?.title}»</span> еще нет лабораторных работ.
           </div>
+        ) : visibleAssignments.length === 0 ? (
+          <div className="text-center py-12 text-sm text-muted-foreground p-6 space-y-2.5">
+            <p>
+              По предмету <span className="font-semibold text-foreground">«{selectedSubject?.title}»</span> пока нет сданных работ.
+            </p>
+            <button
+              type="button"
+              onClick={() => setFilterMode("all")}
+              className="text-xs text-primary hover:underline font-medium inline-flex items-center gap-1"
+            >
+              <span>Показать все работы ({currentSubjectAssignments.length})</span>
+            </button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
                 <tr className="border-y border-border/70 bg-muted/40 text-xs font-medium text-muted-foreground">
                   <th className="py-3 px-4 w-52 font-semibold">Студент группы</th>
-                  {currentSubjectAssignments.map((assignment, idx) => (
+                  {visibleAssignments.map((assignment, idx) => (
                     <th key={assignment.id} className="py-3 px-3 text-center min-w-[120px]">
                       <Link
                         href={`/dashboard/assignments/${assignment.id}`}
@@ -138,7 +209,7 @@ export function MatrixTable({
                         </div>
                       </td>
 
-                      {currentSubjectAssignments.map((assignment) => {
+                      {visibleAssignments.map((assignment) => {
                         const sub = submissionMap.get(`${assignment.id}_${student.id}`);
                         return (
                           <td key={assignment.id} className="py-3 px-3 text-center">
